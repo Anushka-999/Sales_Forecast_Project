@@ -17,12 +17,14 @@ df = sales_df.merge(features_df, on=["Store", "Date"], how="left").merge(stores_
 # Display merged dataset
 df.head()
 
+# Handle Missing Values
 # Fill missing markdown values with 0
 df.fillna({"MarkDown1": 0, "MarkDown2": 0, "MarkDown3": 0, "MarkDown4": 0, "MarkDown5": 0}, inplace=True)
 # Fill missing CPI and Unemployment with median
 df.loc[:, "CPI"] = df["CPI"].fillna(df["CPI"].median())
 df.loc[:, "Unemployment"] = df["Unemployment"].fillna(df["Unemployment"].median())
 
+# Check Sales Trends Over Time
 import matplotlib.pyplot as plt
 # Aggregate weekly sales
 df_grouped = df.groupby("Date")["Weekly_Sales"].sum()
@@ -34,12 +36,14 @@ plt.ylabel("Total Sales")
 plt.title("Sales Trend Over Time")
 plt.show()
 
+# Store Performance Analysis
 # Top 5 performing stores
 top_stores = df.groupby("Store")["Weekly_Sales"].sum().sort_values(ascending=False).head(5)
 print(top_stores)
 
 # Save processed data for Power BI
 df.to_csv("processed_sales_data.csv", index=False)
+
 
 # Train a Regression Model
 from sklearn.model_selection import train_test_split
@@ -61,3 +65,13 @@ model.fit(X_train, y_train)
 # Predict and evaluate
 y_pred = model.predict(X_test)
 print("Mean Absolute Error:", mean_absolute_error(y_test, y_pred))
+
+# Forecast Future Sales
+import numpy as np
+# Predict future sales
+future_dates = pd.date_range(start="2023-01-01", periods=12, freq="W")
+future_data = X_test.sample(12, random_state=42)  # Using sample as new data
+future_sales = model.predict(future_data)
+# Display results
+forecast = pd.DataFrame({"Date": future_dates, "Predicted_Sales": future_sales})
+print(forecast)
